@@ -1,0 +1,26 @@
+---
+- name: "Installing wordpress on /tmp"
+  hosts: localhost
+  become: true
+  tasks:
+       - name: "Download wordpress Package"
+         get_url:
+                 url: https://wordpress.org/latest.tar.gz
+                 dest: /tmp/latest.tar.gz
+                 validate_certs: no
+       - name: "Extract wordpress to /var/www/"
+         unarchive:
+                 src: /tmp/latest.tar.gz
+                 dest: /var/www/
+                 copy: no
+       - name: "Change default DocumentRoot in Apache Config file"
+         lineinfile:
+                 dest: /etc/apache2/sites-enabled/000-default.conf
+                 regexp: "(.)+DocumentRoot /var/www/html"
+                 line: "DocumentRoot /var/www/wordpress"
+       - name: "Restart apache service"
+         service:
+                 name: apache2
+                 state: restarted
+       - name: "Rename wp-sample.conf file"
+         command: mv /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php creates=/var/www/wordpress/wp-config.php
